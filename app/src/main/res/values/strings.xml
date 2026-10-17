@@ -18,7 +18,7 @@
     <string name="unfavorite">הסר ממועדפים</string>
     <string name="history_title">היסטוריית צפייה לאחרונה</string>
     <string name="stats_title">נתוני המלצה וצפייה מקומיים</string>
-    <string name="empty_home">לא נמצאו סרטונים. לחץ על 'סריקת קבצים' לסריקת המכשיר או לטעינת סרטוני דוגמה.</string>
+    <string name="empty_home">לא נמצאו סרטונים. לחץ על כפתור הסריקה לסריקת המכשיר או לטעינת סרטוני דוגמה.</string>
     <string name="empty_favorites">עדיין לא הוספת סרטונים למועדפים.</string>
     <string name="empty_playlists">אין עדיין רשימות השמעה. צור רשימה חדשה!</string>
     <string name="empty_history">היסטוריית הצפייה שלך ריקה כרגע.</string>
