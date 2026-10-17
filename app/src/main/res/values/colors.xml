@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="yt_red">#FF0000</color>
+    <color name="yt_dark_red">#CC0000</color>
+    <color name="yt_black">#0F0F0F</color>
+    <color name="yt_dark_gray">#272727</color>
+    <color name="yt_medium_gray">#606060</color>
+    <color name="yt_light_gray">#F2F2F2</color>
+    <color name="yt_chip_bg">#E5E5E5</color>
+    <color name="yt_white">#FFFFFF</color>
+    <color name="yt_divider">#E5E5E5</color>
+    <color name="yt_bottom_nav_bg">#FFFFFF</color>
+    <color name="yt_nav_active">#0F0F0F</color>
+    <color name="yt_nav_inactive">#606060</color>
+    <color name="yt_badge_bg">#CC000000</color>
+</resources>

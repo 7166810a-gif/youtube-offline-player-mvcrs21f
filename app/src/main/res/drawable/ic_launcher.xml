@@ -1,0 +1,14 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="96dp"
+    android:height="96dp"
+    android:viewportWidth="96"
+    android:viewportHeight="96">
+    <!-- Rounded Rectangle Red Background -->
+    <path
+        android:fillColor="#FF0000"
+        android:pathData="M24,8 L72,8 C80.8,8 88,15.2 88,24 L88,72 C88,80.8 80.8,88 72,88 L24,88 C15.2,88 8,80.8 8,72 L8,24 C8,15.2 15.2,8 24,8 Z" />
+    <!-- White Play Triangle glyph -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M38,30 L66,48 L38,66 Z" />
+</vector>

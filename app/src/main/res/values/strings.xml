@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">נגן יוטיוב אופליין</string>
+    <string name="tab_home">דף הבית</string>
+    <string name="tab_playlists">פלייליסטים</string>
+    <string name="tab_favorites">מועדפים</string>
+    <string name="tab_library">הספרייה שלי</string>
+    <string name="search_hint">חיפוש סרטונים מקומיים...</string>
+    <string name="scan_storage">סריקת קבצים</string>
+    <string name="scanning">סורק סרטונים במכשיר...</string>
+    <string name="up_next">הבא בתור</string>
+    <string name="recommendations_badge">מומלץ עבורך</string>
+    <string name="views_format">%d צפיות</string>
+    <string name="create_playlist">צור רשימת השמעה חדשה</string>
+    <string name="playlist_name">שם רשימת ההשמעה</string>
+    <string name="add_to_playlist">הוסף לרשימת השמעה</string>
+    <string name="favorite">מועדף</string>
+    <string name="unfavorite">הסר ממועדפים</string>
+    <string name="history_title">היסטוריית צפייה לאחרונה</string>
+    <string name="stats_title">נתוני המלצה וצפייה מקומיים</string>
+    <string name="empty_home">לא נמצאו סרטונים. לחץ על 'סריקת קבצים' לסריקת המכשיר או לטעינת סרטוני דוגמה.</string>
+    <string name="empty_favorites">עדיין לא הוספת סרטונים למועדפים.</string>
+    <string name="empty_playlists">אין עדיין רשימות השמעה. צור רשימה חדשה!</string>
+    <string name="empty_history">היסטוריית הצפייה שלך ריקה כרגע.</string>
+    <string name="permission_required">יש לאשר גישה לקבצי וידאו כדי לאפשר סריקה והשמעה.</string>
+    <string name="btn_grant">אשר גישה</string>
+    <string name="cancel">ביטול</string>
+    <string name="create">צור</string>
+    <string name="load_samples">טען סרטוני דוגמה</string>
+</resources>
