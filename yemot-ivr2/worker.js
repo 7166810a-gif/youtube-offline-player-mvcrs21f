@@ -72,7 +72,7 @@ function spokenText(value) {
   // Yemot uses period, hyphen and ampersand as instruction separators.
   // Keep the title's words intact while replacing those control characters for TTS.
   return String(value || "")
-    .replace(/[.\\-&=\r\n]/g, " ")
+    .replace(/[.\\&=\r\n-]/g, " ")
     .replace(/\s+/g, " ")
     .trim()
     .slice(0, 100);
