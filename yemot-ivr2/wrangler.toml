@@ -1,4 +1,4 @@
-name = "yemot-youtube-search"
+name = "yemot-youtube-search-audio"
 main = "worker.js"
 compatibility_date = "2026-11-07"
 workers_dev = true
