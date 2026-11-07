@@ -49,7 +49,7 @@ test("first call requests consent before searching", async () => {
 test("consent leads to spoken YouTube search query", async () => {
   const app = createYemotHandler();
   const result = await app.fetch(new Request(baseUrl + "?CONSENT=1"), env);
-  assert.equal(await result.text(), "read=t-אמרו את הנושא שאתם רוצים לחפש ב-YouTube=YTQ1,,voice");
+  assert.equal(await result.text(), "read=t-אמרו את הנושא שאתם רוצים לחפש באתר YouTube=YTQ1,,voice");
 });
 
 test("search returns live YouTube video titles and asks for next search", async () => {
