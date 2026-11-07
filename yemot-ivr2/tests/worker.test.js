@@ -66,7 +66,7 @@ test("search returns live YouTube video titles and asks for next search", async 
     body,
   }), env);
   const text = await result.text();
-  assert.match(text, /תוצאות הבאות/);
+  assert.match(text, /תוצאות חיפוש/);
   assert.match(text, /כותרת סרטון לדוגמה/);
   assert.match(text, /סרטון שני/);
   assert.match(text, /YTQ2,,voice/);
