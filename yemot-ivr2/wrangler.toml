@@ -1,4 +1,4 @@
-name = "yemot-ivr2-audio-search"
+name = "yemot-youtube-search"
 main = "worker.js"
 compatibility_date = "2026-11-07"
 workers_dev = true
