@@ -4,56 +4,74 @@ import { createYemotHandler } from "../worker.js";
 
 const SECRET = "test-secret";
 const url = "https://example.test/yemot/" + SECRET;
-const app = (catalog = []) => createYemotHandler(catalog);
-const env = { YEMOT_SHARED_SECRET: SECRET };
+const env = { YEMOT_SHARED_SECRET: SECRET, YOUTUBE_API_KEY: "fake-youtube-key" };
 
 test("health endpoint returns JSON", async () => {
-  const result = await app().fetch(new Request("https://example.test/health"), {});
+  const app = createYemotHandler();
+  const result = await app.fetch(new Request("https://example.test/health"), {});
   assert.equal(result.status, 200);
-  assert.deepEqual(await result.json(), { ok: true, service: "yemot-ivr2-audio-search" });
+  assert.deepEqual(await result.json(), { ok: true, service: "yemot-ivr2-youtube-search" });
 });
 
 test("secret protects the API endpoint", async () => {
-  const result = await app().fetch(new Request("https://example.test/yemot/wrong"), env);
+  const app = createYemotHandler();
+  const result = await app.fetch(new Request("https://example.test/yemot/wrong"), env);
   assert.equal(result.status, 404);
 });
 
-test("first request asks for Hebrew voice search", async () => {
-  const result = await app().fetch(new Request(url), env);
-  assert.equal(await result.text(), "read=t-שלום, אמרו את שם קובץ השמע שאתם מחפשים=SEARCH1,,voice");
+test("first request asks for a Hebrew YouTube voice query", async () => {
+  const app = createYemotHandler();
+  const result = await app.fetch(new Request(url), env);
+  assert.equal(await result.text(), "read=t-שלום, אמרו מה תרצו לחפש ביוטיוב=SEARCH,,voice");
 });
 
-test("voice result matches catalog and chains playback with next read", async () => {
-  const worker = app([{ title: "שיעור לדוגמה", keywords: ["שיעור", "דוגמה"], file: "/1/001" }]);
-  const body = new URLSearchParams({ SEARCH1: "שיעור" }).toString();
-  const result = await worker.fetch(new Request(url, {
+test("voice query calls YouTube search and reads back titles", async () => {
+  let calledUrl;
+  const fakeFetch = async (input) => {
+    calledUrl = new URL(input);
+    return new Response(JSON.stringify({
+      items: [
+        { id: { videoId: "abc123" }, snippet: { title: "כותרת לדוגמה", channelTitle: "ערוץ לדוגמה" } },
+        { id: { videoId: "def456" }, snippet: { title: "סרטון נוסף", channelTitle: "ערוץ שני" } },
+      ],
+    }), { status: 200, headers: { "content-type": "application/json" } });
+  };
+
+  const app = createYemotHandler(fakeFetch);
+  const body = new URLSearchParams({ SEARCH: "מוזיקה לדוגמה" }).toString();
+  const result = await app.fetch(new Request(url, {
     method: "POST",
     headers: { "content-type": "application/x-www-form-urlencoded" },
     body,
   }), env);
+
+  assert.equal(calledUrl.searchParams.get("q"), "מוזיקה לדוגמה");
+  assert.equal(calledUrl.searchParams.get("type"), "video");
+  assert.equal(calledUrl.searchParams.get("key"), "fake-youtube-key");
   const text = await result.text();
-  assert.match(text, /id_list_message=t-מצאתי קובץ מתאים\.t-שיעור לדוגמה\.f-\/1\/001/);
-  assert.match(text, /&read=t-/);
-  assert.match(text, /=SEARCH2,,voice/);
+  assert.match(text, /כותרת לדוגמה/);
+  assert.match(text, /ערוץ לדוגמה/);
+  assert.match(text, /סרטון נוסף/);
 });
 
-test("invalid file paths are never played", async () => {
-  const worker = app([{ title: "פריט לא תקין", keywords: ["חיפוש"], file: "/1/001&go_to_folder=/2" }]);
-  const body = new URLSearchParams({ SEARCH1: "חיפוש" }).toString();
-  const result = await worker.fetch(new Request(url, {
+test("reports missing YouTube API key without exposing secrets", async () => {
+  const app = createYemotHandler();
+  const body = new URLSearchParams({ SEARCH: "שאילתת בדיקה" }).toString();
+  const result = await app.fetch(new Request(url, {
+    method: "POST",
+    headers: { "content-type": "application/x-www-form-urlencoded" },
+    body,
+  }), { YEMOT_SHARED_SECRET: SECRET });
+  assert.match(await result.text(), /מפתח החיפוש של יוטיוב/);
+});
+
+test("handles YouTube API failures with a caller-friendly message", async () => {
+  const app = createYemotHandler(async () => new Response("quota exceeded", { status: 403 }));
+  const body = new URLSearchParams({ SEARCH: "חיפוש" }).toString();
+  const result = await app.fetch(new Request(url, {
     method: "POST",
     headers: { "content-type": "application/x-www-form-urlencoded" },
     body,
   }), env);
-  assert.match(await result.text(), /לא מצאתי קובץ מתאים/);
-});
-
-test("supports JSON request bodies", async () => {
-  const worker = app([{ title: "חדשות", keywords: ["חדשות"], file: "/1/002" }]);
-  const result = await worker.fetch(new Request(url, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ SEARCH1: "חדשות" }),
-  }), env);
-  assert.match(await result.text(), /f-\/1\/002/);
+  assert.match(await result.text(), /אירעה תקלה בחיפוש ביוטיוב/);
 });
