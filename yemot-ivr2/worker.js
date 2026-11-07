@@ -81,7 +81,7 @@ function spokenText(value) {
 const ORDINALS = ["הראשונה", "השנייה", "השלישית", "הרביעית", "החמישית"];
 
 function resultMessage(items) {
-  const parts = ["t-מצאתי ב-YouTube את התוצאות הבאות"];
+  const parts = ["t-מצאתי תוצאות חיפוש באתר YouTube"];
   items.forEach((item, index) => {
     const title = spokenText(item?.snippet?.title);
     if (title) parts.push("t-תוצאה " + ORDINALS[index] + " " + title);
@@ -158,7 +158,7 @@ export function createYemotHandler(fetchImpl = fetch) {
 
       if (!params.has("CONSENT")) {
         return plain(digitsRead(
-          "השירות מבצע חיפוש ב-YouTube ומקריא כותרות בלבד. המשך פירושו הסכמה לתנאי YouTube ולמדיניות הפרטיות באתר, בנתיב privacy. להמשך הקישו אחת",
+          "השירות מבצע חיפוש באתר YouTube ומקריא כותרות בלבד. המשך פירושו הסכמה לתנאי YouTube ולמדיניות הפרטיות באתר השירות. להמשך הקישו אחת",
           "CONSENT"
         ));
       }
@@ -168,7 +168,7 @@ export function createYemotHandler(fetchImpl = fetch) {
 
       const query = latestQuery(params);
       if (!query) {
-        return plain(voiceRead("אמרו את הנושא שאתם רוצים לחפש ב-YouTube", "YTQ1"));
+        return plain(voiceRead("אמרו את הנושא שאתם רוצים לחפש באתר YouTube", "YTQ1"));
       }
       if (query.index > MAX_SEARCHES_PER_CALL) {
         return plain("id_list_message=t-הגעתם למספר החיפושים המרבי בשיחה זו");
@@ -177,11 +177,11 @@ export function createYemotHandler(fetchImpl = fetch) {
       const searchTerm = String(query.value || "");
       if (!searchTerm.trim()) {
         return plain("id_list_message=t-לא זיהיתי מילות חיפוש&" +
-          voiceRead("נסו לומר שוב מה לחפש ב-YouTube", "YTQ" + query.index));
+          voiceRead("נסו לומר שוב מה לחפש באתר YouTube", "YTQ" + (query.index + 1)));
       }
       if (searchTerm.length > 400) {
         return plain("id_list_message=t-החיפוש ארוך מדי. נסו לנסח אותו בקצרה&" +
-          voiceRead("אמרו חיפוש קצר יותר", "YTQ" + query.index));
+          voiceRead("אמרו חיפוש קצר יותר", "YTQ" + (query.index + 1)));
       }
 
       const apiKey = String(env.YOUTUBE_API_KEY || "");
@@ -202,7 +202,7 @@ export function createYemotHandler(fetchImpl = fetch) {
 
         const message = resultMessage(result.items);
         const next = voiceRead(
-          "לחיפוש נוסף ב-YouTube, אמרו נושא אחר",
+          "לחיפוש נוסף באתר YouTube, אמרו נושא אחר",
           "YTQ" + (query.index + 1)
         );
         return plain(message + "&" + next);
