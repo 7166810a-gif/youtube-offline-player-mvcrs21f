@@ -1,30 +1,27 @@
 # חיפוש קולי ישיר ב-YouTube דרך ימות המשיח IVR2
 
-גרסת MVP: המתקשר אומר בעברית מה הוא מחפש, ימות המשיח מתמללת את הדיבור ושולחת את הטקסט ל-Cloudflare Worker. ה-Worker מבצע חיפוש חי ב-YouTube Data API ומקריא בטלפון עד חמש כותרות וערוצים שנמצאו.
+גרסת MVP זו אינה משתמשת בקטלוג מקומי. המתקשר אומר נושא בעברית, והשרת מחפש בזמן אמת ב-YouTube באמצעות YouTube Data API ומקריא עד חמש כותרות תוצאות דרך ימות המשיח.
 
-## מגבלה חשובה: חיפוש אינו השמעת וידאו
-
-המערכת מחפשת ישירות ב-YouTube ומקריאה את התוצאות בטלפון. היא **אינה יכולה להזרים את האודיו של סרטוני YouTube לשיחת IVR או לחלץ ממנו MP3**. מדיניות YouTube אוסרת הורדה, הפרדת פס קול או השמעה לא מקוונת באמצעות ה-API. כדי לצפות/להאזין לסרטון, צריך לפתוח את קישור YouTube במכשיר מתאים, דרך נגן YouTube הרשמי.
-
-אם יש לך קובץ אודיו שקיבלת מבעל הזכויות בנפרד, וניתנה לך הרשאה להשמיע אותו בטלפון, אפשר להשמיע אותו ממערכת ימות במסלול נפרד.
+**חשוב:** ה-IVR יכול לחפש ולהקריא כותרות, אך אינו יכול להזרים לשיחת הטלפון את פס הקול של סרטון YouTube. תנאי YouTube אוסרים הורדת סרטונים, הפרדת פס קול, הצעת MP3 או השמעת רקע במקום נגן YouTube. כדי לצפות/להאזין לסרטון יש לפתוח אותו בנגן YouTube הרשמי.
 
 ## מה כלול
 
-- חיפוש חי ב-YouTube Data API (לא קטלוג מקומי).
-- זיהוי דיבור בעברית של ימות המשיח.
-- הקראת עד חמש תוצאות: כותרת וערוץ.
-- שמירת מפתח YouTube כסוד ב-Cloudflare ולא בקוד.
-- הגנה בסיסית עם סוד משותף בנתיב ה-API.
+- חיפוש ישיר בזמן אמת ב-YouTube Data API.
+- זיהוי דיבור בעברית דרך `read` מסוג `voice` של ימות המשיח.
+- הקראת עד 5 כותרות תוצאות לפי סדר הרלוונטיות של YouTube.
+- אפשרות לבצע חיפוש נוסף באותה שיחה.
+- הסכמה לפני שימוש, דפי תנאי שימוש ומדיניות פרטיות.
+- הגנה על endpoint הטלפוני באמצעות סוד משותף.
+- בדיקות אוטומטיות עם תגובת YouTube מדומה.
 
 ## 1. יצירת מפתח YouTube API
 
-1. היכנס ל-[Google Cloud Console](https://console.cloud.google.com/).
-2. צור פרויקט או בחר פרויקט קיים.
-3. הפעל את **YouTube Data API v3**.
-4. צור API key.
-5. מומלץ להגביל את המפתח ל-YouTube Data API v3 ולשמור אותו פרטי.
+1. פתח פרויקט ב-[Google Cloud Console](https://console.cloud.google.com/).
+2. הפעל בפרויקט את **YouTube Data API v3**.
+3. היכנס ל-Credentials וצור API key.
+4. הגבל את המפתח ל-YouTube Data API v3, ושמור אותו בסוד. אל תכניס אותו ל-GitHub.
 
-לפי התיעוד הרשמי הנוכחי, ברירת המחדל היא 100 בקשות חיפוש `search.list` ביום לפרויקט. כל חיפוש מהמערכת צורך בקשת חיפוש אחת. אפשר לבדוק מכסה ולבקש הרחבה דרך Google Cloud Console.
+לפי התיעוד הרשמי, `search.list` מוגבל כברירת מחדל ל-100 קריאות ביום לפרויקט; כל קריאת חיפוש עולה יחידת מכסה אחת. המכסה אינה זהה למכסת 10,000 היחידות של פעולות API אחרות. ניתן לבקש הרחבת מכסה באמצעות תהליך ביקורת של YouTube.
 
 ## 2. פריסה ל-Cloudflare Workers
 
@@ -38,22 +35,18 @@ npm install --save-dev wrangler
 npx wrangler login
 ```
 
-הגדר סוד אקראי לאימות מול ימות:
+הגדר סוד משותף לימות:
 
 ```bash
 openssl rand -hex 32
 npx wrangler secret put YEMOT_SHARED_SECRET
 ```
 
-הדבק את הערך שנוצר כש-Wrangler מבקש אותו.
-
-הוסף גם את מפתח YouTube:
+הדבק את הסוד שנוצר כאשר Wrangler מבקש ערך. הגדר גם את מפתח YouTube:
 
 ```bash
 npx wrangler secret put YOUTUBE_API_KEY
 ```
-
-הדבק את ה-API key של Google. לעולם אל תכניס את המפתח לקוד או ל-GitHub.
 
 בדיקות:
 
@@ -64,62 +57,72 @@ npm test
 פריסה:
 
 ```bash
-npx wrangler deploy
+npm run deploy
 ```
 
-Cloudflare יציג כתובת בסגנון:
+Cloudflare יציג כתובת כמו:
 
-`https://yemot-ivr2-audio-search.<account>.workers.dev`
+`https://yemot-youtube-search.<account>.workers.dev`
 
-## 3. הגדרת שלוחת API בימות המשיח
+כתובת API לימות:
+
+`https://yemot-youtube-search.<account>.workers.dev/yemot/<YOUR_SHARED_SECRET>`
+
+דפי מדיניות ציבוריים:
+
+- `https://yemot-youtube-search.<account>.workers.dev/privacy`
+- `https://yemot-youtube-search.<account>.workers.dev/terms`
+
+בדיקת שרת:
+
+`https://yemot-youtube-search.<account>.workers.dev/health`
+
+## 3. הגדרות שלוחת API בימות המשיח
 
 הגדר בשלוחה:
 
 ```ini
 type=api
-api_link=https://yemot-ivr2-audio-search.<account>.workers.dev/yemot/<YOUR_SECRET>
+api_link=https://yemot-youtube-search.<account>.workers.dev/yemot/<YOUR_SHARED_SECRET>
 api_say_tts=no
 api_wait_answer_music_on_hold=yes
+api_phone_send=no
+api_did_send=no
+api_call_id_send=no
+api_extension_send=no
+api_enter_id_send=no
+api_enter_id_name_send=no
+api_time_send=no
 ```
 
-החלף את `<account>` ואת `<YOUR_SECRET>` בפרטים שלך.
+החלף את `<account>` ואת `<YOUR_SHARED_SECRET>` בפרטים שלך. שלח POST או GET כברירת מחדל; אין צורך להגדיר מראש פרמטרי חיפוש ב-`api_000`, כי השרת מפעיל דיאלוג דינמי בעזרת `read`.
 
-השרת מבקש מהמתקשר חיפוש קולי באמצעות:
+## 4. מהלך השיחה
 
-```
-read=t-שלום, אמרו מה תרצו לחפש ביוטיוב=SEARCH,,voice
-```
+1. השרת מבקש הסכמה לשימוש בחיפוש YouTube ובתנאי השימוש/מדיניות הפרטיות.
+2. המתקשר מקיש 1 להסכמה.
+3. המערכת מבקשת לומר את נושא החיפוש בעברית.
+4. השרת קורא ל-YouTube ומקריא עד חמש כותרות.
+5. השרת מבקש חיפוש נוסף; אפשר לבצע עד 10 חיפושים בשיחה.
 
-ימות מתמללת את הדיבור ושולחת לשרת את הפרמטר `SEARCH`. השרת מחפש ב-YouTube ומחזיר `id_list_message` עם עד חמש תוצאות להקראה.
+## 5. עלויות ומגבלות
 
-כדי לחזור לשלוחה ולבצע חיפוש נוסף אחרי הקראת התוצאות, אפשר להגדיר בהגדרות השלוחה:
+- Cloudflare Workers Free מאפשר עד 100,000 בקשות Worker ביום לפי מגבלת Cloudflare הנוכחית.
+- YouTube Data API מספק כברירת מחדל 100 קריאות `search.list` ביום לפרויקט.
+- מודול API בימות המשיח תואר בפורום הרשמי כחינמי לעת עתה, אך ימות מציינת שהוא עשוי להפוך לשירות בתשלום.
+- שיחות טלפון ודקות תקשורת עשויות להיות בתשלום אצל ימות או ספק הטלפוניה. לכן אי אפשר להבטיח מערכת ללא עלות כוללת.
+- כשהמכסה היומית של YouTube תסתיים, החיפוש יפסיק לעבוד עד איפוס המכסה או הרחבתה.
 
-```ini
-api_end_goto=/X
-```
+## 6. פרטיות ותנאי שימוש
 
-החלף `/X` בנתיב של שלוחת החיפוש עצמה, ובדוק את ההתנהגות בשיחת ניסיון לפני פתיחה לציבור.
+השרת אינו שומר חיפושים או תוצאות. מילות החיפוש נשלחות ל-Google/YouTube לצורך החיפוש. דפי `/privacy` ו-`/terms` זמינים אחרי הפריסה. יש לבדוק ולעדכן את פרטי בעל השירות ואת מדיניות הפרטיות לפני פתיחה לציבור.
 
-## 4. עלויות
-
-- Cloudflare Workers: אפשר להתחיל במסלול החינמי, בכפוף למכסות העדכניות.
-- YouTube Data API: ללא חיוב רגיל במסגרת המכסה, אבל ברירת המחדל מוגבלת ל-100 חיפושים ביום.
-- ימות המשיח: מודול API מתועד כחינמי כרגע, אך הדבר עשוי להשתנות.
-- שיחות טלפון, מספר גישה ודקות שיחה עשויים להיות בתשלום אצל ימות או ספק התקשורת. לכן לא ניתן להבטיח אפס עלות כוללת.
-
-## 5. פרטיות ואבטחה
-
-- אל תפרסם את כתובת ה-API עם הסוד.
-- הגבל את מפתח YouTube ל-YouTube Data API בלבד.
-- אל תשמור API key בקובצי Git.
-- ה-Worker אינו שומר את מילות החיפוש או את התוצאות.
-- כותרות וערוצים מוצגים לצורך חיפוש ומיוחסים ל-YouTube; אין להציג אותם כאילו נוצרו על ידי השירות.
+לפי מדיניות YouTube API, אין להוריד סרטונים, להפריד אודיו/וידאו, להציע MP3 או לאפשר השמעת רקע. השירות הזה מבצע חיפוש ומקריא כותרות בלבד; הוא אינו מנגן את תוכן הסרטון.
 
 ## תיעוד רשמי
 
 - [YouTube Data API — Search: list](https://developers.google.com/youtube/data/reference/rest/v3/search/list)
+- [YouTube Data API — Quota calculator](https://developers.google.com/youtube/data/determine_quota_cost)
 - [YouTube API Services Developer Policies](https://developers.google.com/youtube/terms/developer-policies)
-- [YouTube API Services Policies Guide](https://developers.google.com/youtube/terms/developer-policies-guide)
-- [מודול API של ימות המשיח](https://f2.freeivr.co.il/topic/56/מודול-api-תקשור-עם-מחשבים-וממשקי-נתונים-חיצוניים)
 - [Cloudflare Workers limits](https://developers.cloudflare.com/workers/platform/limits/)
-- [Cloudflare Workers secrets](https://developers.cloudflare.com/workers/configuration/secrets/)
+- [מודול API של ימות המשיח](https://f2.freeivr.co.il/topic/56/מודול-api-תקשור-עם-מחשבים-וממשקי-נתונים-חיצוניים)
