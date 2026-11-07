@@ -60,7 +60,7 @@ function voiceRead(message, parameter) {
 }
 
 function digitsRead(message, parameter) {
-  return "read=t-" + message + "=" + parameter + ",,1,1,7,Digits";
+  return "read=t-" + message + "=" + parameter + ",,1,1,Digits,yes";
 }
 
 function safeSpeechText(value) {
