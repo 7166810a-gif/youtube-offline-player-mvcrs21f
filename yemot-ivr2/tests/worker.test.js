@@ -45,7 +45,8 @@ test("first request asks for consent", async () => {
     return new Response("{}");
   });
   const result = await app.fetch(new Request(url), env);
-  assert.match(await result.text(), /CONSENT/);
+  const text = await result.text();
+  assert.match(text, /CONSENT,,1,1,Digits,yes/);
   assert.equal(called, false);
 });
 
