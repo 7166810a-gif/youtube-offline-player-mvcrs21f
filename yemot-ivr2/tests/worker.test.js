@@ -41,8 +41,9 @@ test("secret protects the IVR endpoint", async () => {
 test("first call requests consent before searching", async () => {
   const app = createYemotHandler();
   const result = await app.fetch(new Request(baseUrl), env);
-  assert.match(await result.text(), /read=t-/);
-  assert.match(await (async () => result.clone().text())(), /CONSENT,,1,1,7,Digits/);
+  const text = await result.text();
+  assert.match(text, /read=t-/);
+  assert.match(text, /CONSENT,,1,1,7,Digits/);
 });
 
 test("consent leads to spoken YouTube search query", async () => {
